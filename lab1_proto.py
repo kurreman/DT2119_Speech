@@ -56,10 +56,15 @@ def enframe(samples, winlen, winshift):
         in the input signal
     """
     samplelength = len(samples)
-    N = int(samplelength/winlen)
-    enframedsignal = np.empty((N,winlen))
+    N = 1+int((samplelength-1*winlen)/(winlen-winshift))
+    enframedsignal = np.zeros((N,winlen))
+    start = 0
+    stop = winlen
     for i in range(N):
-        enframedsignal[i] = samples[i*winlen:(i+1)*winlen]  #TODO Need to handle the winshift overlap
+        curr_win = samples[start:stop]
+        enframedsignal[i] = curr_win
+        start += winlen-winshift
+        stop +=  winlen-winshift
     return enframedsignal
 
 
