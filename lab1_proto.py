@@ -1,8 +1,8 @@
 # DT2119, Lab 1 Feature Extraction
-
+import numpy as np
 # Function given by the exercise ----------------------------------
 
-def mspec(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, samplingrate=20000)
+def mspec(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, samplingrate=20000):
     """Computes Mel Filterbank features.
 
     Args:
@@ -55,6 +55,14 @@ def enframe(samples, winlen, winshift):
         numpy array [N x winlen], where N is the number of windows that fit
         in the input signal
     """
+    samplelength = len(samples)
+    N = int(samplelength/winlen)
+    enframedsignal = np.empty((N,winlen))
+    for i in range(N):
+        enframedsignal[i] = samples[i*winlen:(i+1)*winlen]  #TODO Need to handle the winshift overlap
+    return enframedsignal
+
+
     
 def preemp(input, p=0.97):
     """
