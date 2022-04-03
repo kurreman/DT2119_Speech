@@ -10,8 +10,14 @@ fsampling = 20E3 #Hz
 winlen = int(20E-3*fsampling)
 winshift = int(10E-3*fsampling)
 
+testsignal = example["samples"]
+
 #testing enframe
-if not np.array_equal(example["frames"],proto.enframe(example["samples"],winlen,winshift)):
-    raise Exception("Enframe broken")
+testsignal = proto.enframe(testsignal,winlen,winshift)
+if not np.array_equal(example["frames"],testsignal):
+    raise Exception("enframe broken")
 
-
+#testing preemp 
+testsignal = proto.preemp(testsignal)
+if not np.array_equal(example["preemph"],testsignal):
+    raise Exception("preemp broken")

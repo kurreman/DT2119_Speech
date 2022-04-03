@@ -1,5 +1,7 @@
 # DT2119, Lab 1 Feature Extraction
 import numpy as np
+import scipy as sp
+from scipy import signal
 # Function given by the exercise ----------------------------------
 
 def mspec(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, samplingrate=20000):
@@ -82,6 +84,8 @@ def preemp(input, p=0.97):
         output: array of pre-emphasised speech samples
     Note (you can use the function lfilter from scipy.signal)
     """
+
+    return signal.lfilter([1, -p], [1], input)
 
 def windowing(input):
     """
