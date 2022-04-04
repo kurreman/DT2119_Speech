@@ -141,8 +141,9 @@ def logMelSpectrum(input, samplingrate):
           nmelfilters
     """
     nfft = input.shape[1]
-    trfbank = tools.trfbank(samplingrate,nfft)
-    print(trfbank.shape)
+    trfil = tools.trfbank(samplingrate,nfft)
+    input_filtered = np.matmul(input,trfil.T)
+    return np.log(input_filtered), trfil
 
 
 def cepstrum(input, nceps):
@@ -157,6 +158,12 @@ def cepstrum(input, nceps):
         array of Cepstral coefficients [N x nceps]
     Note: you can use the function dct from scipy.fftpack.realtransforms
     """
+
+    input_dct = fftpack.dct(input)
+    input_dct = tools.lifter(input_dct)
+    input_dct_cut = input_dct[:,0:nceps]
+    return input_dct_cut
+
 
 def dtw(x, y, dist):
     """Dynamic Time Warping.

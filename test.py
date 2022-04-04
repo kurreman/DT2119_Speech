@@ -1,5 +1,8 @@
 #Koray Amico Kulbay, DT2119, Lab 1, tests
 
+from unittest import TextTestResult
+
+
 def tests():
     import lab1_proto as proto
     import numpy as np
@@ -34,11 +37,13 @@ def tests():
         raise Exception("powerSpectrum broken")
 
     #testing logMelSpectrum 
-    print(testsignal.shape)
-    testsignal = proto.logMelSpectrum(testsignal,fsampling)
-    print(example["mspec"].shape)
-
+    testsignal, trfil = proto.logMelSpectrum(testsignal,fsampling)
     if not np.allclose(example["mspec"],testsignal):
+        raise Exception("powerSpectrum broken")
+
+    #testing cepstrum
+    testsignal = proto.cepstrum(testsignal,13)
+    if not np.allclose(example["lmfcc"],testsignal):
         raise Exception("powerSpectrum broken")
 
     print("All tests OK")
