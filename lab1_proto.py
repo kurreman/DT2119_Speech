@@ -1,7 +1,8 @@
 # DT2119, Lab 1 Feature Extraction
 import numpy as np
 import scipy as sp
-from scipy import signal
+from scipy import signal, fftpack
+import lab1_tools as tools
 # Function given by the exercise ----------------------------------
 
 def mspec(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, samplingrate=20000):
@@ -99,6 +100,11 @@ def windowing(input):
     Note (you can use the function hamming from scipy.signal, include the sym=0 option
     if you want to get the same results as in the example)
     """
+    num_rows, num_cols = input.shape
+    ham_window = signal.hamming(num_cols,sym=0)
+    for i in range(num_rows):
+        input[i] = np.multiply(input[i],ham_window) #element wise multiplication
+    return input
 
 def powerSpectrum(input, nfft):
     """
@@ -112,6 +118,13 @@ def powerSpectrum(input, nfft):
         array of power spectra [N x nfft]
     Note: you can use the function fft from scipy.fftpack
     """
+    fft_input = np.zeros((input.shape[0],nfft),dtype=np.complex_)
+    for i in range(input.shape[0]):
+        fft_input[i] = fftpack.fft(input[i],nfft)
+    
+    return abs(fft_input)**2
+
+
 
 def logMelSpectrum(input, samplingrate):
     """
@@ -127,6 +140,10 @@ def logMelSpectrum(input, samplingrate):
     Note: use the trfbank function provided in lab1_tools.py to calculate the filterbank shapes and
           nmelfilters
     """
+    nfft = input.shape[1]
+    trfbank = tools.trfbank(samplingrate,nfft)
+    print(trfbank.shape)
+
 
 def cepstrum(input, nceps):
     """
