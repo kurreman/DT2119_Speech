@@ -10,6 +10,13 @@ def tests():
 
     example = np.load('lab1_example.npz', allow_pickle=True)['example'].item()
     data = np.load('lab1_data.npz', allow_pickle=True)['data']
+    #testing data array
+    print(data[0]["samples"])
+    plt.plot(range(1,len(data[0]["samples"])+1),data[0]["samples"])
+    plt.title("Speech sample of example")
+    plt.show()
+    #-------
+
     fsampling = 20E3 #Hz
     winlen = int(20E-3*fsampling)
     winshift = int(10E-3*fsampling)
