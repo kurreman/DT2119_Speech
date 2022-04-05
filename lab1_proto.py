@@ -23,7 +23,7 @@ def mspec(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, sam
     preemph = preemp(frames, preempcoeff)
     windowed = windowing(preemph)
     spec = powerSpectrum(windowed, nfft)
-    return logMelSpectrum(spec, samplingrate)
+    return logMelSpectrum(spec, samplingrate)[0] #!! Added indexing since my function returns two variables
 
 def mfcc(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, nceps=13, samplingrate=20000, liftercoeff=22):
     """Computes Mel Frequency Cepstrum Coefficients.
@@ -43,7 +43,7 @@ def mfcc(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, ncep
     """
     mspecs = mspec(samples, winlen, winshift, preempcoeff, nfft, samplingrate)
     ceps = cepstrum(mspecs, nceps)
-    return lifter(ceps, liftercoeff)
+    return tools.lifter(ceps, liftercoeff)
 
 # Functions to be implemented ----------------------------------
 
@@ -85,7 +85,6 @@ def preemp(input, p=0.97):
         output: array of pre-emphasised speech samples
     Note (you can use the function lfilter from scipy.signal)
     """
-
     return signal.lfilter([1, -p], [1], input)
 
 def windowing(input):
@@ -121,7 +120,6 @@ def powerSpectrum(input, nfft):
     fft_input = np.zeros((input.shape[0],nfft),dtype=np.complex_)
     for i in range(input.shape[0]):
         fft_input[i] = fftpack.fft(input[i],nfft)
-    
     return abs(fft_input)**2
 
 
@@ -158,7 +156,6 @@ def cepstrum(input, nceps):
         array of Cepstral coefficients [N x nceps]
     Note: you can use the function dct from scipy.fftpack.realtransforms
     """
-
     input_dct = fftpack.dct(input)
     input_dct = tools.lifter(input_dct)
     input_dct_cut = input_dct[:,0:nceps]
