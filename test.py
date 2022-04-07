@@ -1,12 +1,12 @@
 #Koray Amico Kulbay, DT2119, Lab 1, tests
 
 from unittest import TextTestResult
-
+import lab1_proto as proto
+import numpy as np
+import matplotlib.pyplot as plt
+from numpy import random as rnd
 
 def tests():
-    import lab1_proto as proto
-    import numpy as np
-    import matplotlib.pyplot as plt
 
     example = np.load('lab1_example.npz', allow_pickle=True)['example'].item()
     data = np.load('lab1_data.npz', allow_pickle=True)['data']
@@ -46,6 +46,12 @@ def tests():
     testsignal = proto.cepstrum(testsignal,13)
     if not np.allclose(example["lmfcc"],testsignal):
         raise Exception("powerSpectrum broken")
+
+    #Custom tests
+    x = 2*np.ones((80,4))#rnd.rand(3,4)
+    y = np.ones((5,4))#rnd.rand(5,4)
+    locD = proto.locD(x,y)
+    assert np.array_equal(locD,2*np.ones((80,5)))
 
     print("All tests OK")
 

@@ -161,6 +161,17 @@ def cepstrum(input, nceps):
     input_dct_cut = input_dct[:,0:nceps]
     return input_dct_cut
 
+def locD(x,y):
+    """Input: two matrices of MFCC coeffs for a speech sample. n_windows X n_MFCCs
+        Output: single matrix with local euclidian distance matric of size n_wind_x X n_wind_y"""
+
+    locD = np.zeros((x.shape[0],y.shape[0]))
+    for i, MFFC_vec_i in enumerate(x):
+        for j, MFFC_vec_j in enumerate(y):
+            locD[i,j] = np.linalg.norm(MFFC_vec_i-MFFC_vec_j)
+    return locD
+
+
 
 def dtw(x, y, dist):
     """Dynamic Time Warping.
