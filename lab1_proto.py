@@ -168,6 +168,7 @@ def locD(x,y):
 
     locD = np.zeros((x.shape[0],y.shape[0]))
     for i, MFFC_vec_i in enumerate(x):
+        i = x.shape[0]-1-i
         for j, MFFC_vec_j in enumerate(y):
             locD[i,j] = np.linalg.norm(MFFC_vec_i-MFFC_vec_j)
     return locD
