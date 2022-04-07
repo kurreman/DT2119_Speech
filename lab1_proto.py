@@ -166,7 +166,7 @@ def locD(x,y):
     """Input: two matrices of MFCC coeffs for a speech sample. n_windows X n_MFCCs
         Output: single matrix with local euclidian distance matric of size n_wind_x X n_wind_y"""
 
-    locD = np.zeros((x.shape[0],y.shape[0]))
+    locD = np.zeros((x.shape[0],y.shape[0]),dtype=float)
     for i, MFFC_vec_i in enumerate(x):
         i = x.shape[0]-1-i
         for j, MFFC_vec_j in enumerate(y):
@@ -194,7 +194,7 @@ def dtw(x, y, dist=locD,LD=None):
     if LD is None:
         LD = locD(x,y)
 
-    AD = np.full(LD.shape, None)
+    AD = np.full(LD.shape, None,dtype=float)
     path = [[AD.shape[0],0]]
     for i in reversed(range(AD.shape[0])):
         for j in range(AD.shape[1]):

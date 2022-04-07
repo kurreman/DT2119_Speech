@@ -54,9 +54,8 @@ def tests():
     assert np.array_equal(locD,2*np.ones((80,5)))
 
     print("All tests OK")
-    LD = np.array([[1,1,1,1,1,1,0],[1,1,1,1,1,0,1],[1,1,1,1,0,1,1],[1,1,1,0,1,1,1],[1,0,0,1,1,1,1],[0,1,1,1,1,1,1]]) #testing
-    LD = np.zeros((9,9))
-    d, LD, AD, path = proto.dtw(x,y,LD=LD)
-    print("d = {} LD = {} AD = {} path = {}".format(d, LD, AD, path))
+    #LD = np.array([[1,1,1,1,1,1,0],[1,1,1,1,1,0,1],[1,1,1,1,0,1,1],[1,1,1,0,1,1,1],[1,0,0,1,1,1,1],[0,1,1,1,1,1,1]]) #testing
+    #d, LD, AD, path = proto.dtw(x,y,LD=LD)
+    #print("d = {} LD = {} AD = {} path = {}".format(d, LD, AD, path))
 
 tests()
