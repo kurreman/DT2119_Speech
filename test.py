@@ -55,4 +55,7 @@ def tests():
 
     print("All tests OK")
 
+    d, LD, AD, path = proto.dtw(x,y)
+    print("d = {} LD = {} AD = {} path = {}".format(d, LD, AD, path))
+
 tests()

@@ -1,4 +1,5 @@
 # DT2119, Lab 1 Feature Extraction
+from multiprocessing.sharedctypes import Value
 import numpy as np
 import scipy as sp
 from scipy import signal, fftpack
@@ -173,7 +174,7 @@ def locD(x,y):
 
 
 
-def dtw(x, y, dist):
+def dtw(x, y, dist=locD):
     """Dynamic Time Warping.
 
     Args:
@@ -189,3 +190,41 @@ def dtw(x, y, dist):
 
     Note that you only need to define the first output for this exercise.
     """
+    LD = locD(x,y)
+    AD = np.full(LD.shape, None)
+    path = [[AD.shape[0],0]]
+    for i in reversed(range(LD.shape[0])):
+        for j in range(LD.shape[1]):
+            neighbours = [] #neighbour index 0 = left, 1 = diag, 2 = under
+            neighbours_index = [[i,j-1],[i+1,j-1],[i+1,j]]
+            
+            if j-1 >= 0: #handling out of bounds
+                neighbours.append(AD[i,j-1])
+            else:
+                neighbours.append(np.Inf)
+            try: #handling out of bounds
+                if j-1 >= 0: #handling out of bounds
+                    neighbours.append(AD[i+1,j-1])
+                else:
+                    neighbours.append(np.Inf)
+            except IndexError:
+                neighbours.append(np.Inf)
+
+            try: #handling out of bounds
+                neighbours.append(AD[i+1,j])
+            except IndexError:
+                neighbours.append(np.Inf)
+
+            index_min = np.argmin(neighbours)
+            AccD_min = neighbours[index_min]
+            if AccD_min == np.Inf:
+                AccD_min = 0
+            else: 
+                path.append(neighbours_index[index_min])
+            AD[i,j] = LD[i,j] + AccD_min
+    d = AD[-1,-1]/(AD.shape[0]+AD.shape[1])
+    return d, LD, AD, path
+
+
+
+
