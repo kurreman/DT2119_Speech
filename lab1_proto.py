@@ -174,7 +174,7 @@ def locD(x,y):
 
 
 
-def dtw(x, y, dist=locD):
+def dtw(x, y, dist=locD,LD=None):
     """Dynamic Time Warping.
 
     Args:
@@ -190,11 +190,13 @@ def dtw(x, y, dist=locD):
 
     Note that you only need to define the first output for this exercise.
     """
-    LD = locD(x,y)
+    if LD is None:
+        LD = locD(x,y)
+
     AD = np.full(LD.shape, None)
     path = [[AD.shape[0],0]]
-    for i in reversed(range(LD.shape[0])):
-        for j in range(LD.shape[1]):
+    for i in reversed(range(AD.shape[0])):
+        for j in range(AD.shape[1]):
             neighbours = [] #neighbour index 0 = left, 1 = diag, 2 = under
             neighbours_index = [[i,j-1],[i+1,j-1],[i+1,j]]
             
@@ -203,7 +205,7 @@ def dtw(x, y, dist=locD):
             else:
                 neighbours.append(np.Inf)
             try: #handling out of bounds
-                if j-1 >= 0: #handling out of bounds
+                if j-1 >= 0 and i+1 <= AD.shape[0]: #handling out of bounds
                     neighbours.append(AD[i+1,j-1])
                 else:
                     neighbours.append(np.Inf)
@@ -222,7 +224,7 @@ def dtw(x, y, dist=locD):
             else: 
                 path.append(neighbours_index[index_min])
             AD[i,j] = LD[i,j] + AccD_min
-    d = AD[-1,-1]/(AD.shape[0]+AD.shape[1])
+    d = AD[0,-1]#/(AD.shape[0]+AD.shape[1])
     return d, LD, AD, path
 
 
