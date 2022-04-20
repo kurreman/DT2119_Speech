@@ -45,16 +45,19 @@ def concatTwoHMMs(hmm1, hmm2):
     #OBS this "hardcoded" approach will create issues if used with a model with other than 3 states. 
     #Example "sp" has only 2 states, important for lab 3 if reusing code. 
 
-    PIconcat[0:3] = PI[0:3]
-    PIconcat[3:] = PI[3]*P
+    PIconcat[0:M1] = PI[0:M1]
+    PIconcat[M1:] = PI[M1]*P
     
-    Aconcat[0:3,0:3] = A[0:3,0:3]
-    Aconcat[3:,0:3] = np.zeros((4,3))
-    Aconcat[0,3:] = A[0,3]*P
-    Aconcat[1,3:] = A[1,3]*P
-    Aconcat[2,3:] = A[2,3]*P
-    Aconcat[3:-1,3:] = B[0:3,:]
-    Aconcat[-1,3:] = np.array([0, 0, 0, 1])
+    Aconcat[0:M1,0:M1] = A[0:M1,0:M1]
+    Aconcat[M1:,0:M1] = np.zeros((4,M1))
+    for i in range(M1+1):
+        Aconcat[i,M1:] = A[i,M1]*P
+        #Aconcat[1,3:] = A[1,3]*P
+        #Aconcat[2,3:] = A[2,3]*P
+    Aconcat[M1:-1,M1:] = B[0:M2,:]
+    temp = np.zeros(K-M1+1)
+    temp[-1] = 1
+    Aconcat[-1,M1:] = temp
 
     twoHMMs["startprob"] = PIconcat
     twoHMMs["transmat"] = Aconcat
@@ -180,3 +183,24 @@ def updateMeanAndVar(X, log_gamma, varianceFloor=5.0):
          means: MxD mean vectors for each state
          covars: MxD covariance (variance) vectors for each state
     """
+
+
+
+# PIconcat[0:3] = PI[0:3]
+#     PIconcat[3:] = PI[3]*P
+    
+    
+#     Aconcat[0:3,0:3] = A[0:3,0:3]
+#     Aconcat[3:,0:3] = np.zeros((4,3))
+#     Aconcat[0,3:] = A[0,3]*P
+#     Aconcat[1,3:] = A[1,3]*P
+#     Aconcat[2,3:] = A[2,3]*P
+#     Aconcat[3:-1,3:] = B[0:3,:]
+#     Aconcat[-1,3:] = np.array([0, 0, 0, 1])
+
+#     twoHMMs["startprob"] = PIconcat
+#     twoHMMs["transmat"] = Aconcat
+#     twoHMMs["means"] = np.concatenate((hmm1["means"][0:M1+1,:],hmm2["means"][0:M2+1,:]))
+#     twoHMMs["covars"] = np.concatenate((hmm1["covars"][0:M1+1,:],hmm2["covars"][0:M2+1,:]))
+
+#     return twoHMMs

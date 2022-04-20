@@ -9,4 +9,6 @@ def test():
     
     proto.concatTwoHMMs(phoneHMMs_fem["ow"],phoneHMMs_fem["ah"])
     
+    
+    
 test()
