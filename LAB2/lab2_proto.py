@@ -1,5 +1,5 @@
 import numpy as np
-from tools2 import *
+from lab2_tools import *
 
 def concatTwoHMMs(hmm1, hmm2):
     """ Concatenates 2 HMM models
@@ -29,6 +29,40 @@ def concatTwoHMMs(hmm1, hmm2):
 
     See also: the concatenating_hmms.pdf document in the lab package
     """
+
+    twoHMMs = {}
+    PI = hmm1["startprob"]
+    P = hmm2["startprob"]
+    A = hmm1["transmat"]
+    B = hmm2["transmat"]
+    
+    M1 = len(hmm1["startprob"])-1 #-1 for non emitting state
+    M2 = len(hmm2["startprob"])-1
+    K = M1+M2
+    PIconcat = np.zeros((K+1))
+    Aconcat = np.zeros((K+1,K+1))
+
+    #OBS this "hardcoded" approach will create issues if used with a model with other than 3 states. 
+    #Example "sp" has only 2 states, important for lab 3 if reusing code. 
+
+    PIconcat[0:3] = PI[0:3]
+    PIconcat[3:] = PI[3]*P
+    
+    Aconcat[0:3,0:3] = A[0:3,0:3]
+    Aconcat[3:,0:3] = np.zeros((4,3))
+    Aconcat[0,3:] = A[0,3]*P
+    Aconcat[1,3:] = A[1,3]*P
+    Aconcat[2,3:] = A[2,3]*P
+    Aconcat[3:-1,3:] = B[0:3,:]
+    Aconcat[-1,3:] = np.array([0, 0, 0, 1])
+
+    twoHMMs["startprob"] = PIconcat
+    twoHMMs["transmat"] = Aconcat
+    twoHMMs["means"] = np.concatenate((hmm1["means"][0:M1+1,:],hmm2["means"][0:M2+1,:]))
+    twoHMMs["covars"] = np.concatenate((hmm1["covars"][0:M1+1,:],hmm2["covars"][0:M2+1,:]))
+
+    return twoHMMs
+
 
 # this is already implemented, but based on concat2HMMs() above
 def concatHMMs(hmmmodels, namelist):
