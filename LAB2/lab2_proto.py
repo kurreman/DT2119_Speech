@@ -137,7 +137,10 @@ def forward(log_emlik, log_startprob, log_transmat):
     for j in range(M):
         forward_prob[0,j] = log_startprob[j] + log_emlik[0,j]
         for n in range(1,N): #skips n=0 since the init state is defined above
-            forward_prob[n,j] = logsumexp(forward_prob[n-1,:]+log_transmat[:,j]) + log_emlik[n,j]
+            #print(forward_prob[n-1,:].shape, log_transmat[:-1,j].shape)
+            forward_prob[n,j] = logsumexp(forward_prob[n-1,:]+log_transmat[:-1,j]) + log_emlik[n,j] #-1 on transmat to skip the last
+    
+    return forward_prob
             
 
 
@@ -196,23 +199,7 @@ def updateMeanAndVar(X, log_gamma, varianceFloor=5.0):
          covars: MxD covariance (variance) vectors for each state
     """
 
-
-
-# PIconcat[0:3] = PI[0:3]
-#     PIconcat[3:] = PI[3]*P
-    
-    
-#     Aconcat[0:3,0:3] = A[0:3,0:3]
-#     Aconcat[3:,0:3] = np.zeros((4,3))
-#     Aconcat[0,3:] = A[0,3]*P
-#     Aconcat[1,3:] = A[1,3]*P
-#     Aconcat[2,3:] = A[2,3]*P
-#     Aconcat[3:-1,3:] = B[0:3,:]
-#     Aconcat[-1,3:] = np.array([0, 0, 0, 1])
-
-#     twoHMMs["startprob"] = PIconcat
-#     twoHMMs["transmat"] = Aconcat
-#     twoHMMs["means"] = np.concatenate((hmm1["means"][0:M1+1,:],hmm2["means"][0:M2+1,:]))
-#     twoHMMs["covars"] = np.concatenate((hmm1["covars"][0:M1+1,:],hmm2["covars"][0:M2+1,:]))
-
-#     return twoHMMs
+def loglik(logalphaN):
+    """ Input: forward log probabilities for each of the M states in the model in the last step N | log_alpha
+        Output: log likelihood of whole sequence X until last step N-1"""
+    return logsumexp(logalphaN)
