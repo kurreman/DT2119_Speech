@@ -239,5 +239,13 @@ def table2matrix(score_table):
         score_matrix[i,:] = np.array(score_list)
         i+=1
     return score_matrix, word_list, digit_list
+
+def pickbestfit(score_matrix, word_list):
+    """"""
+    best_fit_list = []
+    for i in range(score_matrix.shape[0]):
+        highest_lik_id = np.argmax(score_matrix[i,:])
+        best_fit_list.append(word_list[highest_lik_id])
+    return best_fit_list
     
 
