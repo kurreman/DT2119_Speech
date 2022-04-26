@@ -203,3 +203,41 @@ def loglik(logalphaN):
     """ Input: forward log probabilities for each of the M states in the model in the last step N | log_alpha
         Output: log likelihood of whole sequence X until last step N-1"""
     return logsumexp(logalphaN)
+
+def score_data(data,wordHMMs):
+    """Scores data with final loglikelihood.
+        Args:
+            data: Contains 44 samples of different speakers
+            wordHMMs: HMMs for words"""
+    score_table = {}
+    for datapt in data: 
+        utt_file = datapt["filename"]
+        score_table[utt_file] = {}
+        for word in wordHMMs.keys():
+            obsloglik = log_multivariate_normal_density_diag(datapt['lmfcc'],wordHMMs[word]["means"],wordHMMs[word]["covars"])
+            logalpha = forward(obsloglik,np.log(wordHMMs[word]["startprob"]),np.log(wordHMMs[word]["transmat"]))
+            loglik_val = loglik(logalpha[-1,:])
+            score_table[utt_file][word] = loglik_val
+            score_table[utt_file]["digit"] = datapt["digit"]
+
+    return score_table
+
+def table2matrix(score_table):
+    """"""
+    score_matrix = np.zeros((44,11))
+    word_list = []
+    digit_list = []
+    i=0
+    for utt_id in score_table.keys():
+        score_list = []
+        word_list = []
+        digit_list.append(score_table[utt_id]["digit"])
+        for word in score_table[utt_id].keys():
+            if word != "digit":
+                score_list.append(score_table[utt_id][word])
+                word_list.append(word)
+        score_matrix[i,:] = np.array(score_list)
+        i+=1
+    return score_matrix, word_list, digit_list
+    
+
