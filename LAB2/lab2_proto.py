@@ -170,6 +170,18 @@ def viterbi(log_emlik, log_startprob, log_transmat, forceFinalState=True):
         viterbi_loglik: log likelihood of the best path
         viterbi_path: best path
     """
+    N = log_emlik.shape[0]
+    M = log_emlik.shape[1]
+
+    viterbi_loglik = np.zeros((N,M))
+    #viterbi_path = np.zeros(N)
+
+    for j in range(M):
+        viterbi_loglik[0,j] = log_startprob[j] + log_emlik[0,j]
+        for n in range(1,N):
+            viterbi_loglik[n,j] = np.max(viterbi_loglik[n-1,:]+log_transmat[:-1,j]) + log_emlik[n,j] #-1 on transmat to skip the last
+    
+    return viterbi_loglik
 
 def statePosteriors(log_alpha, log_beta):
     """State posterior (gamma) probabilities in log domain.
