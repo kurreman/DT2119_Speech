@@ -211,6 +211,16 @@ def statePosteriors(log_alpha, log_beta):
     Output:
         log_gamma: NxM array of gamma probabilities for each of the M states in the model
     """
+    N = log_alpha.shape[0]
+    M = log_alpha.shape[1]
+    log_gamma = np.zeros((N,M))
+    for i in range(M):
+        for n in range(N):
+            log_gamma[n,i] = log_alpha[n,i] + log_beta[n,i] - logsumexp(log_alpha[N-1,:])
+    for tstep in range(N):
+        if not np.isclose(np.sum(np.exp(log_gamma[tstep,:])),1):
+            print("State posteriors don't sum to 1!!")
+    return log_gamma
 
 def updateMeanAndVar(X, log_gamma, varianceFloor=5.0):
     """ Update Gaussian parameters with diagonal covariance
