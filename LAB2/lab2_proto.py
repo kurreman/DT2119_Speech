@@ -1,5 +1,6 @@
 import numpy as np
 from lab2_tools import *
+import time
 
 def concatTwoHMMs(hmm1, hmm2):
     """ Concatenates 2 HMM models
@@ -174,14 +175,17 @@ def viterbi(log_emlik, log_startprob, log_transmat, forceFinalState=True):
     M = log_emlik.shape[1]
 
     viterbi_loglik = np.zeros((N,M))
-    #viterbi_path = np.zeros(N)
+    viterbi_path = np.zeros(M) #TODO !!!!
 
     for j in range(M):
         viterbi_loglik[0,j] = log_startprob[j] + log_emlik[0,j]
+        #viterbi_path[j]=[]
         for n in range(1,N):
             viterbi_loglik[n,j] = np.max(viterbi_loglik[n-1,:]+log_transmat[:-1,j]) + log_emlik[n,j] #-1 on transmat to skip the last
+            #viterbi_path.append(np.argmax(viterbi_loglik[n-1,:]+log_transmat[:-1,j]))
+            #viterbi_path[j].append(np.argmax(viterbi_loglik[n-1,:]+log_transmat[:-1,j]))
     
-    return viterbi_loglik
+    return viterbi_loglik,viterbi_path
 
 def statePosteriors(log_alpha, log_beta):
     """State posterior (gamma) probabilities in log domain.
@@ -216,22 +220,28 @@ def loglik(logalphaN):
         Output: log likelihood of whole sequence X until last step N-1"""
     return logsumexp(logalphaN)
 
-def score_data(data,wordHMMs):
+def score_data(data,wordHMMs,algorithm="forward"):
     """Scores data with final loglikelihood.
         Args:
             data: Contains 44 samples of different speakers
             wordHMMs: HMMs for words"""
+    Tstart = time.time()
     score_table = {}
     for datapt in data: 
         utt_file = datapt["filename"]
         score_table[utt_file] = {}
         for word in wordHMMs.keys():
             obsloglik = log_multivariate_normal_density_diag(datapt['lmfcc'],wordHMMs[word]["means"],wordHMMs[word]["covars"])
-            logalpha = forward(obsloglik,np.log(wordHMMs[word]["startprob"]),np.log(wordHMMs[word]["transmat"]))
-            loglik_val = loglik(logalpha[-1,:])
+            if algorithm=="forward":
+                logalpha = forward(obsloglik,np.log(wordHMMs[word]["startprob"]),np.log(wordHMMs[word]["transmat"]))
+                loglik_val = loglik(logalpha[-1,:])
+            elif algorithm=="viterbi":
+                v_val = viterbi(obsloglik,np.log(wordHMMs[word]["startprob"]),np.log(wordHMMs[word]["transmat"]))[0]
+                loglik_val = np.max(v_val[-1,:])
             score_table[utt_file][word] = loglik_val
             score_table[utt_file]["digit"] = datapt["digit"]
-
+    Tend = time.time()
+    print("Runtime: ",Tend-Tstart, "s", " | Algorithm: ", algorithm)
     return score_table
 
 def table2matrix(score_table):
@@ -260,4 +270,11 @@ def pickbestfit(score_matrix, word_list):
         best_fit_list.append(word_list[highest_lik_id])
     return best_fit_list
     
-
+def percentCorrect(list1,list2):
+    """Returns equality percentage of elementwise comparison between list 1 and 2 of same length"""
+    max_score = len(list1)
+    score = 0
+    for i in range(len(list1)):
+        if list1[i] == list2[i]:
+            score += 1
+    return score/(max_score)
