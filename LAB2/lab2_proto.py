@@ -157,6 +157,18 @@ def backward(log_emlik, log_startprob, log_transmat):
         backward_prob: NxM array of backward log probabilities for each of the M states in the model
     """
 
+    N = log_emlik.shape[0]
+    M = log_emlik.shape[1]
+
+    backward_prob = np.zeros((N,M))
+
+    for i in reversed(range(M)):
+        backward_prob[N-1,i] = 0
+        for n in reversed(range(N-1)): #skips n=0 since the init state is defined above
+            backward_prob[n,i] = logsumexp(log_transmat[i,:-1]+log_emlik[n+1,:]+backward_prob[n+1,:]) #-1 on transmat to skip the last
+    
+    return backward_prob
+
 def viterbi(log_emlik, log_startprob, log_transmat, forceFinalState=True):
     """Viterbi path.
 
@@ -175,7 +187,8 @@ def viterbi(log_emlik, log_startprob, log_transmat, forceFinalState=True):
     M = log_emlik.shape[1]
 
     viterbi_loglik = np.zeros((N,M))
-    viterbi_path = np.zeros(M) #TODO !!!!
+    viterbi_path = np.zeros(M) #TODO 1 !!!!
+    #TODO 2 forceFinalState!! 
 
     for j in range(M):
         viterbi_loglik[0,j] = log_startprob[j] + log_emlik[0,j]
