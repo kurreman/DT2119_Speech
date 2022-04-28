@@ -43,9 +43,6 @@ def concatTwoHMMs(hmm1, hmm2):
     PIconcat = np.zeros((K+1))
     Aconcat = np.zeros((K+1,K+1))
 
-    #OBS this "hardcoded" approach will create issues if used with a model with other than 3 states. 
-    #Example "sp" has only 2 states, important for lab 3 if reusing code. 
-
     PIconcat[0:M1] = PI[0:M1]
     PIconcat[M1:] = PI[M1]*P
     
@@ -238,6 +235,7 @@ def updateMeanAndVar(X, log_gamma, varianceFloor=5.0):
          covars: MxD covariance (variance) vectors for each state
     """
 
+
 def loglik(logalphaN):
     """ Input: forward log probabilities for each of the M states in the model in the last step N | log_alpha
         Output: log likelihood of whole sequence X until last step N-1"""
@@ -301,3 +299,7 @@ def percentCorrect(list1,list2):
         if list1[i] == list2[i]:
             score += 1
     return score/(max_score)
+
+#def calcLoglikFromScratch(utterance,HMMmodel):
+
+
