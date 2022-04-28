@@ -234,6 +234,20 @@ def updateMeanAndVar(X, log_gamma, varianceFloor=5.0):
          means: MxD mean vectors for each state
          covars: MxD covariance (variance) vectors for each state
     """
+    N = X.shape[0]
+    D = X.shape[1]
+    M = log_gamma.shape[1]
+    gamma = np.exp(log_gamma)
+
+    print(X.shape, log_gamma.shape)
+
+    means = np.zeros((M,D))
+    covars = np.zeros((M,D))
+    for j in range(D):
+        means[:,j] = np.sum(np.multiply(gamma[:,j],X[:,j]))/np.sum(gamma[:,j])
+        covars[:,j] = np.sum(np.multiply(gamma[:,j],np.multiply(X[:,j]-means[:,j],(X[:,j]-means[:,j]).T)))/np.sum(gamma[:,j])
+    return means, covars
+
 
 
 def loglik(logalphaN):
@@ -300,6 +314,12 @@ def percentCorrect(list1,list2):
             score += 1
     return score/(max_score)
 
-#def calcLoglikFromScratch(utterance,HMMmodel):
+def getlogAlphaBetaGamma(utterance,HMMmodel): 
+    obsloglik = log_multivariate_normal_density_diag(utterance['lmfcc'],HMMmodel["means"],HMMmodel["covars"])
+    logalpha = forward(obsloglik,np.log(HMMmodel["startprob"]),np.log(HMMmodel["transmat"]))
+    logbeta = backward(obsloglik,np.log(HMMmodel["startprob"]),np.log(HMMmodel["transmat"]))
+    loggamma = statePosteriors(logalpha,logbeta)
+
+    return logalpha, logbeta,loggamma
 
 
