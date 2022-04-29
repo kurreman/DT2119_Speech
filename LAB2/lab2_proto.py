@@ -245,7 +245,15 @@ def updateMeanAndVar(X, log_gamma, varianceFloor=5.0):
     covars = np.zeros((M,D))
     for j in range(D):
         means[:,j] = np.sum(np.multiply(gamma[:,j],X[:,j]))/np.sum(gamma[:,j])
-        covars[:,j] = np.sum(np.multiply(gamma[:,j],np.multiply(X[:,j]-means[:,j],(X[:,j]-means[:,j]).T)))/np.sum(gamma[:,j])
+        # covars[:,j] = np.sum(np.multiply(gamma[:,j],np.multiply(X[:,j]-means[:,j],(X[:,j]-means[:,j]).T)))/np.sum(gamma[:,j])
+        covars[:,j] = np.sum(np.multiply(gamma[:,j],np.multiply(X[j,:]-means[j,:],(X[j,:]-means[j,:]).T)))/np.sum(gamma[:,j])
+    # for j in range(D):
+    #     for m in range(M):
+
+    # for m in range(M):
+    #     means[m,:] = 
+    #     covars[m,:] = 
+
     return means, covars
 
 
