@@ -234,27 +234,47 @@ def updateMeanAndVar(X, log_gamma, varianceFloor=5.0):
          means: MxD mean vectors for each state
          covars: MxD covariance (variance) vectors for each state
     """
-    N = X.shape[0]
-    D = X.shape[1]
-    M = log_gamma.shape[1]
-    gamma = np.exp(log_gamma)
+    # N = X.shape[0]
+    # D = X.shape[1]
+    # M = log_gamma.shape[1]
+    # gamma = np.exp(log_gamma)
 
-    print(X.shape, log_gamma.shape)
+    # print(X.shape, log_gamma.shape)
 
-    means = np.zeros((M,D))
-    covars = np.zeros((M,D))
-    for j in range(D):
-        means[:,j] = np.sum(np.multiply(gamma[:,j],X[:,j]))/np.sum(gamma[:,j])
-        # covars[:,j] = np.sum(np.multiply(gamma[:,j],np.multiply(X[:,j]-means[:,j],(X[:,j]-means[:,j]).T)))/np.sum(gamma[:,j])
-        covars[:,j] = np.sum(np.multiply(gamma[:,j],np.multiply(X[j,:]-means[j,:],(X[j,:]-means[j,:]).T)))/np.sum(gamma[:,j])
+    # means = np.zeros((M,D))
+    # covars = np.zeros((M,D))
     # for j in range(D):
-    #     for m in range(M):
+    #     means[:,j] = np.sum(np.multiply(gamma[:,j],X[:,j]))/np.sum(gamma[:,j])
+    #     # covars[:,j] = np.sum(np.multiply(gamma[:,j],np.multiply(X[:,j]-means[:,j],(X[:,j]-means[:,j]).T)))/np.sum(gamma[:,j])
+    #     covars[:,j] = np.sum(np.multiply(gamma[:,j],np.multiply(X[j,:]-means[j,:],(X[j,:]-means[j,:]).T)))/np.sum(gamma[:,j])
+    # # for j in range(D):
+    # #     for m in range(M):
 
-    # for m in range(M):
-    #     means[m,:] = 
-    #     covars[m,:] = 
+    # # for m in range(M):
+    # #     means[m,:] = 
+    # #     covars[m,:] = 
 
-    return means, covars
+    # return means, covars
+
+    n_states = log_gamma.shape[1]
+    n_features = X.shape[1]
+
+    normalizer = np.diag(1 / np.exp(logsumexp(log_gamma)))
+
+    new_means = np.dot(normalizer, np.dot(np.exp(log_gamma.T), X))
+
+    new_covars = np.zeros((n_states, n_features))
+
+    for index in range(n_states):
+        new_covars[index, :] = np.dot(
+            np.exp(log_gamma.T[index, :]), ((X - new_means[index]) ** 2)
+        )
+
+    new_covars = np.dot(normalizer, new_covars)
+
+    new_covars = np.clip(new_covars, varianceFloor, None)
+
+    return new_means, new_covars
 
 
 
