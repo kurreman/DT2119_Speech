@@ -184,18 +184,59 @@ def viterbi(log_emlik, log_startprob, log_transmat, forceFinalState=True):
     M = log_emlik.shape[1]
 
     viterbi_loglik = np.zeros((N,M))
-    viterbi_path = np.zeros(M) #TODO 1 !!!!
+    viterbi_path = np.zeros((N,M)) #TODO 1 !!!!
     #TODO 2 forceFinalState!! 
 
     for j in range(M):
         viterbi_loglik[0,j] = log_startprob[j] + log_emlik[0,j]
-        #viterbi_path[j]=[]
+        viterbi_path[0,j] = 0
         for n in range(1,N):
             viterbi_loglik[n,j] = np.max(viterbi_loglik[n-1,:]+log_transmat[:-1,j]) + log_emlik[n,j] #-1 on transmat to skip the last
+            viterbi_path[n,j] = np.argmax(viterbi_loglik[n-1,:]+log_transmat[:-1,j])
             #viterbi_path.append(np.argmax(viterbi_loglik[n-1,:]+log_transmat[:-1,j]))
             #viterbi_path[j].append(np.argmax(viterbi_loglik[n-1,:]+log_transmat[:-1,j]))
     
     return viterbi_loglik,viterbi_path
+
+def viterbi2(log_emission_lik, log_startprob, log_transmat, forceFinalState=True):
+    """Viterbi path.
+
+    Args:
+        log_emission_lik: NxM array of emission log likelihoods, N frames, M states
+        log_startprob: log probability to start in state i
+        log_transmat: transition log probability from state i to j
+        forceFinalState: if True, start backtracking from the final state in
+                  the model, instead of the best state at the last time step
+
+    Output:
+        viterbi_loglik: log likelihood of the best path
+        viterbi_path: best path
+    """
+    n_states = log_startprob.shape[0] - 1
+    n_frames = log_emission_lik.shape[0]
+
+    log_prop_path = np.zeros((n_frames, n_states))
+    argmax_paths = np.zeros((n_frames, n_states), dtype=int)
+
+    for j in range(n_states):
+        log_prop_path[0][j] = log_startprob[j] + log_emission_lik[0][j]
+
+    for i in range(1, n_frames):
+        for j in range(n_states):
+            temp = log_prop_path[i - 1, :] + log_transmat[:, j]
+            log_prop_path[i][j] = temp.max() + log_emission_lik[i][j]
+            argmax_paths[i][j] = temp.argmax()
+
+    viterbi_path = np.zeros(n_frames, dtype=int)
+    if forceFinalState:
+        viterbi_path[-1] = n_states - 1
+    else:
+        viterbi_path[-1] = log_prop_path[-1, :].argmax()
+
+    for i in range(2, n_frames + 1):
+        viterbi_path[-i] = argmax_paths[-i + 1][viterbi_path[-i + 1]]
+
+    return log_prop_path[-1, :].max(), viterbi_path
 
 def statePosteriors(log_alpha, log_beta):
     """State posterior (gamma) probabilities in log domain.
