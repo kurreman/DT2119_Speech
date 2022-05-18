@@ -1,7 +1,7 @@
 import numpy as np
 import os
 #from pysndfile import sndio
-# import soundfile as sf
+import soundfile as sf
 
 def path2info(path):
     """
@@ -34,16 +34,16 @@ def loadAudioPySndFile(filename):
     samples = np.array(sndobj[0])
     return samples, samplingrate
 
-# def loadAudio(filename):
-#     """
-#     loadAudio: loads audio data from file using pysndfile
+def loadAudio(filename):
+    """
+    loadAudio: loads audio data from file using pysndfile
 
-#     Note that, by default soundfile converts the samples into floating point
-#     numbers and rescales them in the range [-1, 1]. This is avoided by specifying
-#     the option dtype=np.int16 which keeps both the original data type and range
-#     of values.
-#     """
-#     return sf.read(filename, dtype='int16')
+    Note that, by default soundfile converts the samples into floating point
+    numbers and rescales them in the range [-1, 1]. This is avoided by specifying
+    the option dtype=np.int16 which keeps both the original data type and range
+    of values.
+    """
+    return sf.read(filename, dtype='int16')
 
 def frames2trans(sequence, outfilename=None, timestep=0.01):
     """
