@@ -2,6 +2,7 @@ import numpy as np
 import os
 #from pysndfile import sndio
 # import soundfile as sf
+import torchaudio
 
 def path2info(path):
     """
@@ -44,6 +45,10 @@ def loadAudioPySndFile(filename):
 #     of values.
 #     """
 #     return sf.read(filename, dtype='int16')
+
+def loadAudio(filename):
+    x,fs = torchaudio.load(filename,normalize=False)
+    return x.numpy().reshape(-1),fs
 
 def frames2trans(sequence, outfilename=None, timestep=0.01):
     """
