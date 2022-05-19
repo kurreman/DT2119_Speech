@@ -1,1 +1,0 @@
-import numpy as npimport lab3_toolsSPYDER as toolsSPYDERimport lab1_proto as proto1import lab1_tools as tools1stateList = np.load("stateList.npy", allow_pickle=True)example = stateList = np.load("lab3_example.npz", allow_pickle=True)samples, samplingrate = toolsSPYDER.loadAudio(filename)lmfcc = proto1.mfcc(samples)np.save("lmfccEXAMPLE.npy",lmfcc)
