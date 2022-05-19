@@ -26,7 +26,7 @@ def mspec(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, sam
     spec = powerSpectrum(windowed, nfft)
     return logMelSpectrum(spec, samplingrate)[0] #!! Added indexing since my function returns two variables
 
-def mfcc(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, nceps=13, samplingrate=20000, liftercoeff=22):
+def mfcc(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, nceps=13, samplingrate=20000, liftercoeff=22,mspecOutput=False):
     """Computes Mel Frequency Cepstrum Coefficients.
 
     Args:
@@ -44,7 +44,10 @@ def mfcc(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, ncep
     """
     mspecs = mspec(samples, winlen, winshift, preempcoeff, nfft, samplingrate)
     ceps = cepstrum(mspecs, nceps)
-    return tools.lifter(ceps, liftercoeff)
+    if mspecOutput:
+        return tools.lifter(ceps, liftercoeff), mspecs
+    else:
+        return tools.lifter(ceps, liftercoeff)
 
 # Functions to be implemented ----------------------------------
 
