@@ -1,12 +1,42 @@
 # DT2119, Lab 1 Feature Extraction
-from multiprocessing.sharedctypes import Value
-import numpy as np
-import scipy as sp
-from scipy import signal, fftpack
-import lab1_tools as tools
-# Function given by the exercise ----------------------------------
 
-def mspec(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, samplingrate=20000):
+import numpy as np
+import scipy
+from scipy.signal import lfilter, hamming
+from scipy.fftpack.realtransforms import dct
+from sklearn.mixture import GaussianMixture
+from sklearn.metrics.pairwise import euclidean_distances
+
+from lab1_tools import (
+    trfbank,
+    lifter as tools_lifter,
+    tidigit2labels as tools_tidigit2labels,
+)
+
+
+def pairwise_distance(A, B):
+    return euclidean_distances(A, B)
+
+
+def tidigit2labels(tidigitsarray):
+    return tools_tidigit2labels(tidigitsarray)
+
+
+def GMM(data, n_components, gm=None, **kvargs):
+    if gm is not None:
+        gm.fit(data)
+    else:
+        gm = GaussianMixture(n_components=n_components, **kvargs).fit(data)
+    return gm
+
+
+def lifter(mfcc, l=22):
+    return tools_lifter(mfcc, l)
+
+
+def mspec(
+    samples, winlen=400, winshift=200, preempcoeff=0.97, nfft=512, samplingrate=20000
+):
     """Computes Mel Filterbank features.
 
     Args:
@@ -24,9 +54,19 @@ def mspec(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, sam
     preemph = preemp(frames, preempcoeff)
     windowed = windowing(preemph)
     spec = powerSpectrum(windowed, nfft)
-    return logMelSpectrum(spec, samplingrate)[0] #!! Added indexing since my function returns two variables
+    return logMelSpectrum(spec, samplingrate)
 
-def mfcc(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, nceps=13, samplingrate=20000, liftercoeff=22,mspecOutput=False):
+
+def mfcc(
+    samples,
+    winlen=400,
+    winshift=200,
+    preempcoeff=0.97,
+    nfft=512,
+    nceps=13,
+    samplingrate=20000,
+    liftercoeff=22,
+):
     """Computes Mel Frequency Cepstrum Coefficients.
 
     Args:
@@ -44,12 +84,11 @@ def mfcc(samples, winlen = 400, winshift = 200, preempcoeff=0.97, nfft=512, ncep
     """
     mspecs = mspec(samples, winlen, winshift, preempcoeff, nfft, samplingrate)
     ceps = cepstrum(mspecs, nceps)
-    if mspecOutput:
-        return tools.lifter(ceps, liftercoeff), mspecs
-    else:
-        return tools.lifter(ceps, liftercoeff)
+    return lifter(ceps, liftercoeff)
+
 
 # Functions to be implemented ----------------------------------
+
 
 def enframe(samples, winlen, winshift):
     """
@@ -62,20 +101,15 @@ def enframe(samples, winlen, winshift):
         numpy array [N x winlen], where N is the number of windows that fit
         in the input signal
     """
-    samplelength = len(samples)
-    N = 1+int((samplelength-1*winlen)/(winlen-winshift))
-    enframedsignal = np.zeros((N,winlen))
-    start = 0
-    stop = winlen
-    for i in range(N):
-        curr_win = samples[start:stop]
-        enframedsignal[i] = curr_win
-        start += winlen-winshift
-        stop +=  winlen-winshift
-    return enframedsignal
+
+    return np.lib.stride_tricks.sliding_window_view(samples, (winlen,))[::winshift, :]
+
+    # if copy:
+    #     return view.copy() and set writeable=True
+    # else:
+    #     return view
 
 
-    
 def preemp(input, p=0.97):
     """
     Pre-emphasis filter.
@@ -89,7 +123,9 @@ def preemp(input, p=0.97):
         output: array of pre-emphasised speech samples
     Note (you can use the function lfilter from scipy.signal)
     """
-    return signal.lfilter([1, -p], [1], input)
+
+    return lfilter([1, -p], [1], input)
+
 
 def windowing(input):
     """
@@ -103,11 +139,9 @@ def windowing(input):
     Note (you can use the function hamming from scipy.signal, include the sym=0 option
     if you want to get the same results as in the example)
     """
-    num_rows, num_cols = input.shape
-    ham_window = signal.hamming(num_cols,sym=0)
-    for i in range(num_rows):
-        input[i] = np.multiply(input[i],ham_window) #element wise multiplication
-    return input
+
+    return input * hamming(input.shape[1], sym=0)
+
 
 def powerSpectrum(input, nfft):
     """
@@ -121,11 +155,8 @@ def powerSpectrum(input, nfft):
         array of power spectra [N x nfft]
     Note: you can use the function fft from scipy.fftpack
     """
-    fft_input = np.zeros((input.shape[0],nfft),dtype=np.complex_)
-    for i in range(input.shape[0]):
-        fft_input[i] = fftpack.fft(input[i],nfft)
-    return abs(fft_input)**2
 
+    return np.abs(scipy.fft.fft(input, nfft)) ** 2
 
 
 def logMelSpectrum(input, samplingrate):
@@ -142,13 +173,11 @@ def logMelSpectrum(input, samplingrate):
     Note: use the trfbank function provided in lab1_tools.py to calculate the filterbank shapes and
           nmelfilters
     """
-    nfft = input.shape[1]
-    trfil = tools.trfbank(samplingrate,nfft)
-    input_filtered = np.matmul(input,trfil.T)
-    return np.log(input_filtered), trfil
+
+    return trfbank(samplingrate, input.shape[1])
 
 
-def cepstrum(input, nceps):
+def cepstrum(input, nceps, **kvargs):
     """
     Calulates Cepstral coefficients from mel spectrum applying Discrete Cosine Transform
 
@@ -160,26 +189,13 @@ def cepstrum(input, nceps):
         array of Cepstral coefficients [N x nceps]
     Note: you can use the function dct from scipy.fftpack.realtransforms
     """
-    input_dct = fftpack.dct(input)
-    #input_dct = tools.lifter(input_dct)
-    #input_dct_cut = input_dct[:,0:nceps]
-    #return input_dct_cut
-    return input_dct[:,0:nceps]
 
-def locD(x,y):
-    """Input: two matrices of MFCC coeffs for a speech sample. n_windows X n_MFCCs
-        Output: single matrix with local euclidian distance matric of size n_wind_x X n_wind_y"""
-
-    locD = np.zeros((x.shape[0],y.shape[0]),dtype=float)
-    for i, MFFC_vec_i in enumerate(x):
-        i = x.shape[0]-1-i
-        for j, MFFC_vec_j in enumerate(y):
-            locD[i,j] = np.linalg.norm(MFFC_vec_i-MFFC_vec_j)
-    return locD
+    # n : int, optional
+    #   Length of the transform. If n < x.shape[axis], x is truncated. If n > x.shape[axis], x is zero-padded. The default results in n = x.shape[axis].
+    return dct(input, **kvargs)[:, :nceps]
 
 
-
-def dtw(x, y, dist=locD,LD=None):
+def dtw(x, y, dist=pairwise_distance, calculate_path=False):
     """Dynamic Time Warping.
 
     Args:
@@ -195,43 +211,30 @@ def dtw(x, y, dist=locD,LD=None):
 
     Note that you only need to define the first output for this exercise.
     """
-    if LD is None:
-        LD = locD(x,y)
 
-    AD = np.full(LD.shape, None,dtype=float)
-    path = [[AD.shape[0],0]]
-    for i in reversed(range(AD.shape[0])):
-        for j in range(AD.shape[1]):
-            neighbours = [] #neighbour index 0 = left, 1 = diag, 2 = under
-            neighbours_index = [[i,j-1],[i+1,j-1],[i+1,j]]
-            
-            if j-1 >= 0: #handling out of bounds
-                neighbours.append(AD[i,j-1])
-            else:
-                neighbours.append(np.Inf)
-            try: #handling out of bounds
-                if j-1 >= 0 and i+1 <= AD.shape[0]: #handling out of bounds
-                    neighbours.append(AD[i+1,j-1])
-                else:
-                    neighbours.append(np.Inf)
-            except IndexError:
-                neighbours.append(np.Inf)
+    N = x.shape[0]
+    M = y.shape[0]
 
-            try: #handling out of bounds
-                neighbours.append(AD[i+1,j])
-            except IndexError:
-                neighbours.append(np.Inf)
+    LD = pairwise_distance(x, y)
+    AD = np.ones((N, M)) * np.inf
+    path = np.empty((N, M, 2))
+    path[:] = np.nan
 
-            index_min = np.argmin(neighbours)
-            AccD_min = neighbours[index_min]
-            if AccD_min == np.Inf:
-                AccD_min = 0
-            else: 
-                path.append(neighbours_index[index_min])
-            AD[i,j] = LD[i,j] + AccD_min
-    d = AD[0,-1]#/(AD.shape[0]+AD.shape[1])
-    return d, LD, AD, path
+    AD[:, 0] = LD[:, 0].cumsum()
+    AD[0, :] = LD[0, :].cumsum()
 
+    for i in range(1, N):
+        for j in range(1, M):
+            cost = LD[i, j]
+            costs = [AD[i - 1, j], AD[i, j - 1], AD[i - 1, j - 1]]
+            path[i, j, :] = [(i - 1, j), (i, j - 1), (i - 1, j - 1)][np.argmin(costs)]
+            AD[i, j] = cost + costs[np.argmin(costs)]
 
+    # calcualte shortest path
+    if calculate_path:
+        currents = [np.array([path.shape[0], path.shape[1]]) - 1]
+        while currents[-1][0] > 0 and currents[-1][1] > 0:
+            currents.append(path[currents[-1][0], currents[-1][1], :].astype(int))
+        path = np.array(currents)
 
-
+    return AD[-1, -1], LD, AD, path

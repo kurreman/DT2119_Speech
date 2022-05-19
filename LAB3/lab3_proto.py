@@ -70,9 +70,6 @@ def extractDATASET(dataset):
    prondict['8'] = ['ey', 't']
    prondict['9'] = ['n', 'ay', 'n']
 
-
-   
-
    data = []
    counter = 0
    for root, dirs, files in os.walk(path):
@@ -85,12 +82,14 @@ def extractDATASET(dataset):
             samples, samplingrate = loadAudio(filename)
 
             lmfcc,mspec = proto1.mfcc(samples=samples,samplingrate=samplingrate,mspecOutput=True)
+
             wordTrans = list(tools.path2info(filename)[2])
             phoneTrans = proto.words2phones(wordTrans, prondict)
             utteranceHMM = proto2.concatHMMs(phoneHMMs, phoneTrans)
             stateTrans = [phone + '_' + str(stateid) for phone in phoneTrans
                   for stateid in range(nstates[phone])]
             
+            #Alignment
             obsloglik = tools2.log_multivariate_normal_density_diag(lmfcc,utteranceHMM["means"],utteranceHMM["covars"])
             vloglik, vpath = proto2.viterbi(obsloglik,np.log(utteranceHMM["startprob"]),np.log(utteranceHMM["transmat"][:-1,:-1]))
 
@@ -98,11 +97,8 @@ def extractDATASET(dataset):
             for i,stateID in enumerate(vpath):
                viterbiStateTrans.append(stateList.index(stateTrans[stateID]))
 
+            targets = viterbiStateTrans #NOT SURE IF THIS IS CORRECT 
             #...your code for feature extraction and forced alignment
             data.append({'filename': filename, 'lmfcc': lmfcc,
                               'mspec': mspec, 'targets': targets})
-
-            #TODO
-            #1. Define/find out which variable is targets
-            #2. Look into the fact that I actually don't perform forced alignment explicitly as with function above.... 
    return data
