@@ -209,9 +209,29 @@ def standardiseEachUtterance(dataset):
       datapt["mspecStacked"] = _standardiseData(datapt["mspecStacked"])
       
       counter+=1
-      print("standardised",dataset, "datapt",counter)
+      print("datapt:",counter)
 
 def _standardiseData(data):
    scaler = StandardScaler().fit(data)
    dataScaled = scaler.transform(data)
    return dataScaled
+
+def flattenData(dataset):
+   """Returns 4 large matrices of dataset lmfcc and mspec also each in stacked version"""
+
+   lmfcc_x = dataset[0]["lmfcc"]
+   mspec_x = dataset[0]["mspec"]
+   dlmfcc_x = dataset[0]["lmfccStacked"]
+   dmspec_x = dataset[0]["mspecStacked"]
+   _y = dataset[0]["targets"]
+   counter = 0
+   for i,datapt in enumerate(dataset):
+      counter +=1
+      print("currently on datapt:", counter, "of",len(dataset))
+      if i != 0:
+         lmfcc_x = np.concatenate((lmfcc_x,datapt["lmfcc"]))
+         mspec_x = np.concatenate((mspec_x,datapt["mspec"]))
+         dlmfcc_x = np.concatenate((dlmfcc_x,datapt["lmfccStacked"]))
+         dmspec_x = np.concatenate((dmspec_x,datapt["mspecStacked"]))
+         _y = np.concatenate((_y,datapt["targets"]))
+   return lmfcc_x,mspec_x,dlmfcc_x,dmspec_x,_y
