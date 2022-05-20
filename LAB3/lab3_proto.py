@@ -8,6 +8,7 @@ import lab1_proto as proto1
 import lab1_tools as tools1
 import lab2_proto as proto2
 import lab2_tools as tools2
+from sklearn.preprocessing import StandardScaler
 
 def words2phones(wordList, pronDict, addSilence=True, addShortPause=True):
    """ word2phones: converts word level to phone level transcription adding silence
@@ -198,3 +199,19 @@ def stackDataset(dataset):
       datapt["lmfccStacked"] = stackMatrix(datapt["lmfcc"])
       datapt["mspecStacked"] = stackMatrix(datapt["mspec"])
 
+def standardiseEachUtterance(dataset):
+   """Standardises whole dataset such that mean is 0 and variance is 1 for each utterance"""
+   counter = 0
+   for datapt in dataset:
+      datapt["lmfcc"] = _standardiseData(datapt["lmfcc"])
+      datapt["lmfccStacked"] = _standardiseData(datapt["lmfccStacked"])
+      datapt["mspec"] = _standardiseData(datapt["mspec"])
+      datapt["mspecStacked"] = _standardiseData(datapt["mspecStacked"])
+      
+      counter+=1
+      print("standardised",dataset, "datapt",counter)
+
+def _standardiseData(data):
+   scaler = StandardScaler().fit(data)
+   dataScaled = scaler.transform(data)
+   return dataScaled
