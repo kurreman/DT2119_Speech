@@ -172,3 +172,29 @@ def splitSpeakerSubsets(dataset):
       except KeyError:
          subsets[ID] = [datapt]
    return subsets
+
+
+def stackMatrix(M):
+   """Stacks a matrix with 3 values back and 3 values infront of time for each time step. timeXfeatures.
+   End cases are handled with just zero feature vectors"""
+   Mtemp = np.zeros((M.shape[0]+6,M.shape[1]))
+   Mtemp[3:-3,:] = M
+   Mstack = np.zeros((M.shape[0],M.shape[1]*7))
+   #print(Mtemp[0:3,:])
+   #print(Mtemp[-3:,:])
+
+   for n in range(Mstack.shape[0]):
+      ntemp = n + 3
+      Mstack[n,:] = np.concatenate((Mtemp[ntemp-3,:],Mtemp[ntemp-2,:],Mtemp[ntemp-1,:],
+                                    Mtemp[ntemp,:],
+                                    Mtemp[ntemp+1,:],Mtemp[ntemp+2,:],Mtemp[ntemp+3,:]),
+                                    axis=None)
+   return Mstack
+
+def stackDataset(dataset):
+   """stacks matrices lmfcc and mspec in datasets, generating new keys called lmfccStacked, mspecStacked"""
+
+   for datapt in dataset: 
+      datapt["lmfccStacked"] = stackMatrix(datapt["lmfcc"])
+      datapt["mspecStacked"] = stackMatrix(datapt["mspec"])
+
