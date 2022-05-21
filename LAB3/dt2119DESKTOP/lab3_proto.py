@@ -13,6 +13,7 @@ import tensorflow as tf
 from tensorflow import keras
 #from tensorflow.keras.utils import np_utils
 from keras.utils import np_utils
+import re
 
 def words2phones(wordList, pronDict, addSilence=True, addShortPause=True):
    """ word2phones: converts word level to phone level transcription adding silence
@@ -268,3 +269,42 @@ def convert2indexArray(M):
          if M[i,j] == 1:
             array[i] = j
    return array
+
+def indexArray2stringArray(arr):
+   stateList = np.load("stateList.npy", allow_pickle=True).tolist()
+   newarr = []
+   for i,el in enumerate(arr):
+      newarr.append(stateList[int(el)])
+   return newarr
+def stateArray2phonemeArray(arr):
+   phonemes = ['ow','z', 'iy', 'r','w', 'ah', 'n', 'uw','th','f', 'ao','ay', 'v','s', 'ih', 'k','eh','ey', 't','sil','sp']
+   
+   for i,state in enumerate(arr):
+      for phoneme in phonemes:
+         if re.search("^%s" % phoneme,state):
+            arr[i] = phoneme
+   return arr
+      
+def mergePhonemes(arr):
+   newarr = [arr[0]]
+   oldel = arr[0]
+   for el in arr:
+      if el != oldel:
+         newarr.append(el)
+      oldel = el
+   return newarr
+
+def levenshteinDistance(s1, s2):
+    if len(s1) > len(s2):
+        s1, s2 = s2, s1
+
+    distances = range(len(s1) + 1)
+    for i2, c2 in enumerate(s2):
+        distances_ = [i2+1]
+        for i1, c1 in enumerate(s1):
+            if c1 == c2:
+                distances_.append(distances[i1])
+            else:
+                distances_.append(1 + min((distances[i1], distances[i1 + 1], distances_[-1])))
+        distances = distances_
+    return distances[-1]
