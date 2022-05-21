@@ -260,3 +260,11 @@ def trainDNN(features,labels,EPOCHS,BATCH_SIZE):
    #train model 
    model.fit(features,labels,epochs=EPOCHS,batch_size=BATCH_SIZE)
    return model
+
+def convert2indexArray(M):
+   array = np.zeros(M.shape[0])
+   for i in range(M.shape[0]):
+      for j in range(M.shape[1]):
+         if M[i,j] == 1:
+            array[i] = j
+   return array
