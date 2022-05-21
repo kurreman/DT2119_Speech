@@ -9,6 +9,10 @@ import lab1_tools as tools1
 import lab2_proto as proto2
 import lab2_tools as tools2
 from sklearn.preprocessing import StandardScaler
+import tensorflow as tf
+from tensorflow import keras
+#from tensorflow.keras.utils import np_utils
+from keras.utils import np_utils
 
 def words2phones(wordList, pronDict, addSilence=True, addShortPause=True):
    """ word2phones: converts word level to phone level transcription adding silence
@@ -235,3 +239,24 @@ def flattenData(dataset):
          dmspec_x = np.concatenate((dmspec_x,datapt["mspecStacked"]))
          _y = np.concatenate((_y,datapt["targets"]))
    return lmfcc_x,mspec_x,dlmfcc_x,dmspec_x,_y
+
+def trainDNN(features,labels,EPOCHS,BATCH_SIZE):
+   """Creates and trains on features and using labels DNN using Keras"""
+   stateList = np.load("stateList.npy", allow_pickle=True).tolist()
+   feature_dim = features.shape[1]
+   output_dim = len(stateList)
+   #Create model
+   model = tf.keras.Sequential()
+   model.add(tf.keras.layers.Dense(80,activation=tf.nn.relu,input_shape=(feature_dim,)))
+   model.add(tf.keras.layers.Dense(70,activation=tf.nn.relu)) #choose ReLu since it's faster to compute compared to Sigmoid
+   model.add(tf.keras.layers.Dense(output_dim,activation=tf.nn.softmax)) #softmax distributes probabilitites across our states
+
+   model.compile(loss="categorical_crossentropy",
+               optimizer="sgd",
+               metrics=["accuracy"])
+
+   #EPOCHS = 2 #Goes through data set EPOCHS number of times 
+   #BATCH_SIZE = 256 #Each training step model will see BATCH_SIZE number of examples to guide and adjust parameters
+   #train model 
+   model.fit(features,labels,epochs=EPOCHS,batch_size=BATCH_SIZE)
+   return model
