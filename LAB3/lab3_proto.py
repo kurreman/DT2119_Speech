@@ -2,7 +2,7 @@ from importlib.machinery import WindowsRegistryFinder
 import numpy as np
 from lab3_tools import *
 import os
-import lab3_toolsSPYDER as tools
+import lab3_tools as tools
 import lab3_proto as proto
 import lab1_proto as proto1
 import lab1_tools as tools1
