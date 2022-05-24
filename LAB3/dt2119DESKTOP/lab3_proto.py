@@ -1,5 +1,6 @@
 from importlib.machinery import WindowsRegistryFinder
 import numpy as np
+from sklearn.compose import TransformedTargetRegressor
 from lab3_tools import *
 import os
 import lab3_tools as tools
@@ -308,3 +309,10 @@ def levenshteinDistance(s1, s2):
                 distances_.append(1 + min((distances[i1], distances[i1 + 1], distances_[-1])))
         distances = distances_
     return distances[-1]
+
+def _targetsFromIndex2z1Matrix(targets):
+   M = np.zeros((len(targets),61))
+
+   for i,index in enumerate(targets):
+      M[i,index] = 1
+   return M
